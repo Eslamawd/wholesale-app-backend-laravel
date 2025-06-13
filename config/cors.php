@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [ 'https://peaceful-strength-production.up.railway.app' ,],
+    'allowed_origins' => [ 'https://wholesale-front-react-production.up.railway.app' ,],
 
     'allowed_origins_patterns' => [],
 
