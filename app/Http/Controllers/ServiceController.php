@@ -18,22 +18,25 @@ class ServiceController extends Controller
             'services' => ServiceResource::collection($services)
         ]);
     }
-
- public function store(ServiceRequest $request)
+public function store(ServiceRequest $request)
 {
     $validated = $request->validated();
 
+    // التحقق من وجود الصورة
     if ($request->hasFile('image_path')) {
+        // تخزين الصورة داخل مجلد images في قرص public
         $validated['image_path'] = $request->file('image_path')->store('images', 'public');
     }
 
+    // إنشاء الخدمة
     $service = Service::create($validated);
 
     return response()->json([
-        'message' => 'Service Created successfully',
+        'message' => 'Service created successfully.',
         'service' => new ServiceResource($service->load('category'))
-    ]);
+    ], 201); // كود الحالة 201 يعني "تم الإنشاء"
 }
+
 public function update(Request $request, $id)
 {
     $service = Service::find($id);
@@ -57,7 +60,7 @@ public function update(Request $request, $id)
         $validated['image_path'] = $request->file('image_path')->store('images', 'public');
     }
 
-    $service->updated($validated);
+    $service->update($validated);
     return response()->json([
         'service' => new ServiceResource($service->load('category'))
     ]);
