@@ -19,7 +19,7 @@ class ServiceResource extends JsonResource
             'description' => $this->description,
             'price'       => $this->price,
             'category_id' => $this->category_id,
-            'image_path' => \Illuminate\Support\Facades\Storage::disk('public')->url($this->image_path),
+            'image_path' => asset('storage/' . $this->image_path),
 
             'created_at'  => $this->created_at,
             'updated_at'  => $this->updated_at,
