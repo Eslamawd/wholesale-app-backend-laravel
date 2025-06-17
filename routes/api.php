@@ -21,8 +21,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/wallet/balance', [WalletController::class, 'balance']);
     
-    Route::get('/services', [ServiceController::class, 'index']);
-    Route::get('/services/{id}', [ServiceController::class, 'show']);
 
     Route::middleware([AdminMiddleware::class])->prefix('admin')->group(function () {
         Route::apiResource('categories', CategoryController::class);
