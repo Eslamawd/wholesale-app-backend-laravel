@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\WalletController;
 use App\Http\Middleware\AdminMiddleware;
 use Illuminate\Support\Facades\Route;
@@ -24,7 +25,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::middleware([AdminMiddleware::class])->prefix('admin')->group(function () {
         Route::apiResource('categories', CategoryController::class);
-        Route::put('services/{id}', [ServiceController::class, 'update']);
         Route::apiResource('services', ServiceController::class);
         Route::apiResource('orders', OrderController::class);
         Route::get('all-order',[ OrderController::class, 'orders']);
@@ -44,6 +44,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     
         Route::post('/wallet/deposit/{id}', [WalletController::class, 'deposit']);
         Route::post('/wallet/withdraw/{id}', [WalletController::class, 'withdraw']);
+
+        Route::get('/zddk/balance', [AdminController::class, 'getZddkApiBalance']);
 
 
     });
