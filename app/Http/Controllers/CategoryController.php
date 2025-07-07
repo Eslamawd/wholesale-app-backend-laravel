@@ -21,7 +21,8 @@ class CategoryController extends Controller
     public function show( $category)
     {
         $category = Category::findOrFail($category);
-        return $category->load('services');
+         return $category->load('products');
+
     }
 
     public function update(Request $request,  $category)

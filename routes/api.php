@@ -1,18 +1,17 @@
 <?php
 
-use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\WalletController;
 use App\Http\Middleware\AdminMiddleware;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\OrderController;
-use App\Http\Controllers\ServiceController;
 
 
     Route::get('/categories', [CategoryController::class, 'index']);
-    Route::get('/services', [ServiceController::class, 'index']);
-    Route::get('/services/{id}', [ServiceController::class, 'show']);
+    Route::get('/product',[ProductController::class, 'index']);
+    Route::get('/product/{id}',[ProductController::class, 'index']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
 
@@ -25,7 +24,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::middleware([AdminMiddleware::class])->prefix('admin')->group(function () {
         Route::apiResource('categories', CategoryController::class);
-        Route::apiResource('services', ServiceController::class);
+        Route::apiResource('product', ProductController::class);
         Route::apiResource('orders', OrderController::class);
         Route::get('all-order',[ OrderController::class, 'orders']);
 
@@ -45,8 +44,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/wallet/deposit/{id}', [WalletController::class, 'deposit']);
         Route::post('/wallet/withdraw/{id}', [WalletController::class, 'withdraw']);
 
-        Route::get('/zddk/balance', [AdminController::class, 'getZddkApiBalance']);
-
+        
 
     });
 

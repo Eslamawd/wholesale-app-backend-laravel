@@ -7,15 +7,29 @@ use Illuminate\Database\Eloquent\Model;
 class Category extends Model
 {
     protected $fillable = [
-        'name',
-        'zddk_category_id', 
-        'image_path', // Assuming you added this field to the categories table
+        'external_id',
+        'name_ar',
+        'name_en',
+        'image',
+        'parent_id',
     ];
 
-    protected $table = 'categories';
+    // app/Models/Category.php
 
-    public function services()
+public function products()
+{
+    return $this->hasMany(Product::class);
+}
+
+    // لو عايز تجيب الأب (الفئة الأساسية)
+    public function parent()
     {
-        return $this->hasMany(Service::class);
+        return $this->belongsTo(Category::class, 'parent_id');
+    }
+
+    // لو عايز تجيب الأبناء (الفئات الفرعية)
+    public function children()
+    {
+        return $this->hasMany(Category::class, 'parent_id');
     }
 }
