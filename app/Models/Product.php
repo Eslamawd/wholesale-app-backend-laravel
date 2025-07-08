@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Product extends Model
 {
@@ -23,9 +24,14 @@ class Product extends Model
     protected $casts = [
         'user_fields' => 'array',
         'manage_stock' => 'boolean',
+        'price' => 'float',
+        'quantity' => 'integer',
     ];
 
-    public function category()
+    /**
+     * العلاقة مع التصنيف (الفئة).
+     */
+    public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }

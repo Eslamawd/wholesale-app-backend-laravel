@@ -11,25 +11,28 @@ class ProductSeeder extends Seeder
 {
     public function run(): void
     {
+        $page = 1; 
+        $limit = 50; // الحد الأقصى للصفحات
+
+
         $service = new ThreeBECardService();
 
-        $page = 1;
-        $pageSize = 50;
-        $imported = 0;
+        // تحميل التصنيفات وربطها حسب external_id
+        $categories = Category::all()->keyBy('external_id');
 
-        do {
-            $response = $service->getProducts($page, $pageSize);
+        while ($page <= $limit) {
+            $products = $service->getProducts($page); // جلب المنتجات حسب الصفحة
+      
 
-            if (!isset($response['data']) || empty($response['data'])) {
+            if (empty($products)) {
+                $this->command->warn("🚫 No products found on page {$page}. Stopping...");
                 break;
             }
 
-            $categories = Category::all()->keyBy('external_id');
-
-            foreach ($response['data'] as $item) {
+            foreach ($products as $item) {
                 $category = $categories[$item['category_id']] ?? null;
 
-                Product::updateOrCreate(
+                $product = Product::updateOrCreate(
                     ['external_id' => $item['id']],
                     [
                         'category_external_id' => $item['category_id'],
@@ -45,12 +48,13 @@ class ProductSeeder extends Seeder
                     ]
                 );
 
-                $imported++;
+           
             }
 
+            $this->command->info("✅ Page {$page} processed.");
             $page++;
-        } while (!empty($response['data']));
+        }
 
-        $this->command->info("✅ Products imported successfully: {$imported} items.");
+        $this->command->info("🎉 Done. Total imported products: .");
     }
 }

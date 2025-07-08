@@ -11,9 +11,23 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::with('category')->get();
+        $products = Product::with('category')->paginate(12); 
         return response()->json(['products' => $products]);
     }
+   public function getByCat($id)
+{
+    $category = Category::findOrFail($id); 
+    
+    $products = Product::where('category_id', $category->id)
+                ->with('category')
+                ->paginate(12);
+
+    return response()->json([
+        'products' => $products,
+        'category' => $category
+    ]);
+}
+
 
     public function show($id)
     {

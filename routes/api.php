@@ -10,8 +10,9 @@ use App\Http\Controllers\OrderController;
 
 
     Route::get('/categories', [CategoryController::class, 'index']);
+    Route::get('/categories/{id}', [CategoryController::class, 'show']);
     Route::get('/product',[ProductController::class, 'index']);
-    Route::get('/product/{id}',[ProductController::class, 'index']);
+    Route::get('/product/{id}',[ProductController::class, 'show']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
 

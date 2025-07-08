@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Category extends Model
 {
@@ -14,22 +16,32 @@ class Category extends Model
         'parent_id',
     ];
 
-    // app/Models/Category.php
+    /**
+     * العلاقة مع المنتجات.
+     */
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class, 'category_id');
+    }
 
-public function products()
-{
-    return $this->hasMany(Product::class);
-}
-
-    // لو عايز تجيب الأب (الفئة الأساسية)
-    public function parent()
+    /**
+     * الفئة الأساسية (الأب).
+     */
+    public function parent(): BelongsTo
     {
         return $this->belongsTo(Category::class, 'parent_id');
     }
 
-    // لو عايز تجيب الأبناء (الفئات الفرعية)
-    public function children()
+    /**
+     * الفئات الفرعية (الأبناء).
+     */
+    public function children(): HasMany
     {
         return $this->hasMany(Category::class, 'parent_id');
     }
+    public function scopeParentsOnly($query)
+{
+    return $query->whereNull('parent_id');
+}
+
 }

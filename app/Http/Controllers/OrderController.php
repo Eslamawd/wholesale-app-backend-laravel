@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
-       protected $cardService;
+    protected $cardService;
 
     public function __construct(ThreeBECardService $cardService)
     {
@@ -23,68 +23,80 @@ class OrderController extends Controller
     }
 
    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'count' => 'required|integer|min:1',
-            'user_fields' => 'required|array',
+{
+    $validated = $request->validate([
+        'product_id' => 'required|exists:products,id',
+        'count' => 'required|integer|min:1',
+        'user_fields' => 'required|array',
+    ]);
 
-        ]);
+    $product = Product::findOrFail($validated['product_id']);
+    $total = $product->price * $validated['count'];
+    $user = $request->user();
 
-        $product = Product::findOrFail($validated['product_id']);
+    // تحقق من كفاية الرصيد فقط بدون خصم
+    if ($user->wallet->balance < $total) {
+        return response()->json(['message' => 'Insufficient balance'], 422);
+    }
 
-        if (request()->user()->wallet->balance < $product->price * $validated['count']) {
-            return response()->json(['message' => 'Insufficient balance'], 422);
-        }
-        // 1. احفظ الأوردر محليًا
+    // تنسيق الحقول لإرسالها لـ 3BE
+    $formattedFields = $this->formatUserFields($validated['user_fields']);
+
+    // إرسال الطلب لـ 3BE أولاً قبل إنشاء الأوردر أو الخصم
+    $payload = [[
+        'item_id' => $product->external_id,
+        'count' => $validated['count'],
+        'user_fields' => $formattedFields,
+    ]];
+
+    $response = $this->cardService->sendOrder($payload);
+    $data = $response->json();
+
+    // تحقق من نجاح الطلب
+    if ($response->successful() && empty($data['error'])) {
+        // خصم الرصيد بعد النجاح
+        $user->withdraw($total);
+
+        // حفظ الأوردر بعد نجاح الدفع ونجاح الطلب من 3BE
         $order = Order::create([
             'product_id' => $product->id,
             'count' => $validated['count'],
-            'user_fields' => $validated['user_fields'],
-            'user_id' => $request->user()->id,
-            'total_price' => $product->price * $validated['count'],
-            
+            'user_fields' => $validated['user_fields'], // النسخة الخام لو تحب
+            'user_id' => $user->id,
+            'total_price' => $total,
+            'external_order_id' => $data['order_id'] ?? null,
+            'response' => $data,
         ]);
 
-
-        // خصم المبلغ من رصيد المستخدم
-        $request->user()->withdraw( $order->total_price);
-
-        // 2. جهز البيانات لإرسالها لـ 3BE
-        $payload = [
-            [
-                'item_id' => $product->external_id,
-                'count' => $validated['count'],
-                'user_fields' => $validated['user_fields'],
-            ]
-        ];
-
-        // 3. أرسل الأوردر
-        $response = $this->cardService->sendOrder($payload);
-
-        if ($response->successful()) {
-            $order->external_order_id = $response['order_id'] ?? null;
-            $order->response = $response->json();
-            $order->save();
-
-            return response()->json([
-                'message' => 'Order sent successfully.',
-                'order' => $order,
-            ]);
-        } else {
-            return response()->json([
-                'message' => 'Failed to send order to 3BE.',
-                'error' => $response->json(),
-            ], 422);
-        }
+        return response()->json([
+            'message' => 'Order sent successfully.',
+            'order' => $order,
+        ]);
     }
-    // ... باقي دوال الـ Controller ...
 
-  
+    return response()->json([
+        'message' => 'Failed To Send Order',
+        'error' => $data,
+    ], 422);
+}
+
+
+    protected function formatUserFields(array $fields): array
+    {
+        $formatted = [];
+
+        foreach ($fields as $field) {
+            if (isset($field['field_name']) && isset($field['value'])) {
+                $formatted[$field['field_name']] = $field['value'];
+            }
+        }
+
+        return $formatted;
+    }
 
     public function show($id)
     {
-        $order = Order::with('product')->find($id); // استخدام with مباشرة مع find
+        $order = Order::with('product')->find($id);
         if (!$order) {
             return response()->json(['message' => 'Order not found'], 404);
         }

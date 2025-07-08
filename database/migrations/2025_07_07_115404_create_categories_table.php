@@ -18,6 +18,8 @@ return new class extends Migration
     $table->string('name_en');
     $table->string('image')->nullable();
     $table->unsignedBigInteger('parent_id')->nullable(); // علاقة أبو-ابن
+    
+    $table->foreign('parent_id')->references('id')->on('categories')->nullOnDelete();
     $table->timestamps();
         });
     }

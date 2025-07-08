@@ -3,13 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
        public function index()
     {
-        return response()->json(['categories' => Category::all()]) ;
+          $categories = Category::parentsOnly()->paginate(6);
+
+    return response()->json(['categories' => $categories]);
     }
 
     public function store(Request $request)
@@ -18,12 +21,28 @@ class CategoryController extends Controller
         return Category::create(['name' => $request->name]);
     }
 
-    public function show( $category)
-    {
-        $category = Category::findOrFail($category);
-         return $category->load('products');
 
-    }
+public function show(Request $request,$id)
+{
+    $perPage = 12; // عدد الفئات الفرعية في كل صفحة
+
+    $category = Category::findOrFail($id);
+
+    // الأطفال paginated
+    $childrenQuery = Category::where('parent_id', $category->id);
+    $children = $childrenQuery->paginate($perPage);
+
+    // المنتجات برضو paginated
+    $products = $category->products()->paginate($perPage);
+
+    
+    return response()->json([
+        'category' => $category,
+        'children' => $children,
+        'products' => $products,
+    ]);
+}
+
 
     public function update(Request $request,  $category)
     {

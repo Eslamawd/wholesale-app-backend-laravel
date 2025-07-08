@@ -16,25 +16,26 @@ class ThreeBECardService
             $this->token = env('3PE_CARD_TOKEN');
     }
 
-       public function getCategories()
+       public function getCategories($page)
     {
         $response = Http::withHeaders([
             'token' => $this->token,
-        ])->get($this->baseUrl . '/MemberApi_getCategories');
+        ])->get($this->baseUrl . '/MemberApi_getCategories', [
+            'page' => $page,
+        ]);
 
         return $response->json('data');
     }
 
 
-public function getProducts($page = 1, $pageSize = 50)
+public function getProducts($page)
 {
     $response = Http::withHeaders([
         'token' => $this->token,
     ])
     ->timeout(60)
     ->get($this->baseUrl . '/MemberApi_getProducts', [
-        'page' => $page,
-        'page_size' => $pageSize,
+        'page' => $page
     ]);
 
     return $response->json('data') ?? [];

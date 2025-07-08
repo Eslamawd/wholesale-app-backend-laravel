@@ -25,10 +25,9 @@ return new class extends Migration
         $table->text('description')->nullable();
         $table->boolean('manage_stock')->default(false);
         $table->json('user_fields')->nullable(); // معلومات مثل ID المستخدم
-
+        $table->foreign('category_id')->references('id')->on('categories')->nullOnDelete(); // علاقة مع جدول الفئات
+      
         $table->timestamps();
-
-        $table->foreign('category_id')->references('id')->on('categories')->nullOnDelete();
         });
     }
 
