@@ -61,7 +61,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
         
         Route::get('/subscribe', [SubscriptionController::class, 'admin']);
+        Route::get('/subscribe/revnue', [SubscriptionController::class, 'getRevenue']);
+        Route::get('/subscribe/count', [AuthController::class, 'count']);
+
         Route::post('/subscribe/{id}', [SubscriptionController::class, 'changeStatus']);
+        
+        
+
         Route::post('/account', [AccountController::class, 'store']);
 
 

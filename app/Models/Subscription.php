@@ -14,6 +14,7 @@ class Subscription extends Model
         'product_id',
         'duration',
         'status',
+        'total',
         'starts_at',
         'ends_at',
     ];

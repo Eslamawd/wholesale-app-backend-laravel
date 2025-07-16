@@ -78,6 +78,7 @@ public function admin(Request $request)
         'product_id' => $service->id,
         'duration'   => $validated['duration'],
         'status'     => 'pending',
+        'total' => $total,
         'starts_at'  => $startsAt,
         'ends_at'    => $endsAt,
     ]);
@@ -125,5 +126,18 @@ public function admin(Request $request)
         $subscription = Subscription::findOrFail($id);
         $subscription->delete();
         return response()->json(['message' => 'Subscription deleted']);
+    }
+
+
+      public function getRevenue()
+    {
+        $revenue = Subscription::sum('total');
+        return response()->json(['count' => $revenue]);
+    }
+
+    public function count()
+    {
+        $count = Subscription::count();
+        return response()->json(['count' => $count]);
     }
 }

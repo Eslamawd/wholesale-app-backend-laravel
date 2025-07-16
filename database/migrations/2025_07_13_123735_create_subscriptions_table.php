@@ -16,7 +16,8 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('product_id');
             $table->enum('duration', ['1_month', '3_months', '6_months', '1_year']);
-            $table->enum('status', ['active', 'expired', 'pending'])->default('pending');
+            $table->enum('status', ['active', 'expired', 'pending'])->default('pending'); 
+            $table->decimal('total', 12, 4)->default(0);
             $table->timestamp('starts_at')->nullable();
             $table->timestamp('ends_at')->nullable();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
