@@ -1,8 +1,10 @@
 <?php
 
 namespace App\Http\Resources;
+
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage; // Ensure this is imported
 
 class ServiceResource extends JsonResource
 {
@@ -15,18 +17,15 @@ class ServiceResource extends JsonResource
     {
         return [
             'id'          => $this->id,
-            'title'        => $this->title,
+            'service_name' => $this->service_name,
             'description' => $this->description,
             'price'       => $this->price,
-            'category_id' => $this->category_id,
-            'image_path' => $this->image_path,
-            'zddk_product_id'=> $this->zddk_product_id,
-            'is_zddk_product'=> (bool) $this->is_zddk_product, // تحويل إلى boolean
-            'product_type'        => $this->product_type,
-            'zddk_required_params' => json_decode($this->zddk_required_params, true), // فك ترميز JSON
-            'zddk_qty_values'     => json_decode($this->zddk_qty_values, true),     // فك ترميز JSON
+            'image_url' => $this->image_path ? asset('storage/' . $this->image_path) : null,
             'created_at'  => $this->created_at,
             'updated_at'  => $this->updated_at,
+            'email'        => optional(auth()->user())->role === 'admin' ? $this->email : null,
+            'password'     => optional(auth()->user())->role === 'admin' ? $this->password : null,
+            
         ];
     }
 }

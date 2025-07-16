@@ -16,6 +16,20 @@ class Category extends Model
         'parent_id',
     ];
 
+    public function getImageAttribute($value)
+{
+    if (!$value) return null;
+
+    // لو الصورة رابط خارجي زي 3becard.com رجّعها زي ما هي
+    if (str_starts_with($value, 'http')) {
+        return $value;
+    }
+
+    // لو الصورة محفوظة في storage/public/categories
+    return asset('storage/' . $value);
+}
+
+
     /**
      * العلاقة مع المنتجات.
      */

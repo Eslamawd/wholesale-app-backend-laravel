@@ -15,16 +15,20 @@ class Product extends Model
         'name_en',
         'image',
         'price',
+        'price_wholesale',
         'quantity',
         'description',
         'manage_stock',
+        'subscription',
         'user_fields',
     ];
 
     protected $casts = [
         'user_fields' => 'array',
         'manage_stock' => 'boolean',
+        'subscription' => 'boolean',
         'price' => 'float',
+        'price_wholesale' => 'float',
         'quantity' => 'integer',
     ];
 
@@ -35,4 +39,31 @@ class Product extends Model
     {
         return $this->belongsTo(Category::class);
     }
+
+    public function getImageAttribute($value)
+{
+    if (!$value) return null;
+
+    // لو الصورة رابط خارجي زي 3becard.com رجّعها زي ما هي
+    if (str_starts_with($value, 'http')) {
+        return $value;
+    }
+
+    // لو الصورة محفوظة في storage/public/categories
+    return asset('storage/' . $value);
+}
+
+
+     public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'subscriptions')
+                    ->withPivot(['duration', 'status', 'starts_at', 'ends_at'])
+                    ->withTimestamps();
+    }
+
 }

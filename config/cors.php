@@ -15,11 +15,11 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'login','register', 'logout','sanctum/csrf-cookie', 'product', 'categories'],
+    'paths' => ['api/*', 'storage/*', 'login','register', 'logout','sanctum/csrf-cookie', 'product', 'categories'],
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [ 'https://servexlb.dkwebmedia.com/' ,],
+    'allowed_origins' => [ 'http://localhost:5173' ],
 
     'allowed_origins_patterns' => [],
 

@@ -117,7 +117,7 @@ class OrderController extends Controller
 
     public function orders()
     {
-        $orders = Order::with(['products', 'user'])->get();
+        $orders = Order::with(['product', 'user'])->paginate(6);
         return response()->json(['orders' => $orders]);
     }
 }

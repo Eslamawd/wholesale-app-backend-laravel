@@ -10,16 +10,55 @@ class CategoryController extends Controller
 {
        public function index()
     {
-          $categories = Category::parentsOnly()->paginate(6);
+          $categories = Category::parentsOnly()->paginate(8);
 
     return response()->json(['categories' => $categories]);
     }
 
-    public function store(Request $request)
+    
+       public function getByAdmin()
     {
-        $request->validate(['name' => 'required|string']);
-        return Category::create(['name' => $request->name]);
+          $categories = Category::with('children')->paginate(10);
+
+
+    return response()->json(['categories' => $categories]);
     }
+
+
+       public function getAll()
+    {
+         $categories = Category::whereNull('parent_id')
+        ->with('children') // جلب الأبناء مباشرة
+        ->get();
+
+    return response()->json(['categories' => $categories]);
+    }
+public function store(Request $request)
+{
+    $request->validate([
+        'name_ar'     => 'required|string',
+        'name_en'     => 'required|string',
+        'external_id' => 'nullable|string|unique:categories,external_id',
+        'image'       => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        'parent_id'   => 'nullable|exists:categories,id',
+    ]);
+
+    // رفع الصورة لو موجودة
+    $imagePath = null;
+    if ($request->hasFile('image')) {
+        $imagePath = $request->file('image')->store('categories', 'public');
+    }
+
+    $category = Category::create([
+        'external_id' => $request->external_id ?? uniqid(),
+        'name_ar'     => $request->name_ar,
+        'name_en'     => $request->name_en,
+        'image'       => $imagePath, // المسار الجديد
+        'parent_id'   => $request->parent_id,
+    ]);
+
+    return response()->json(['category' => $category], 201);
+}
 
 
 public function show(Request $request,$id)

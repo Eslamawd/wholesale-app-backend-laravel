@@ -34,61 +34,87 @@ class ProductController extends Controller
         $product = Product::with('category')->findOrFail($id);
         return response()->json(['product' => $product]);
     }
+public function store(Request $request)
+{
+    $validated = $request->validate([
+        'name_ar'            => 'required|string',
+        'image'              => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048', // ← أفضل من url
+        'price'              => 'required|numeric',
+        'price_wholesale'    => 'required|numeric',
+        'quantity'           => 'nullable|integer',
+        'description'        => 'nullable|string',
+        'subscription'       => 'required|in:true,false,1,0',
+        'category_id'        => 'required|exists:categories,id', // ← إضافي لضمان وجود الفئة
+    ]);
 
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'external_id' => 'required|integer|unique:products,external_id',
-            'category_external_id' => 'required|integer',
-            'name_ar' => 'required|string',
-            'name_en' => 'required|string',
-            'image' => 'nullable|url',
-            'price' => 'required|numeric',
-            'quantity' => 'nullable|integer',
-            'description' => 'nullable|string',
-            'manage_stock' => 'required|boolean',
-            'user_fields' => 'nullable|array',
-        ]);
+    $validated['subscription'] = filter_var($validated['subscription'], FILTER_VALIDATE_BOOLEAN);
 
-        $category = Category::where('external_id', $validated['category_external_id'])->first();
-        if (!$category) {
-            return response()->json(['message' => 'Category not found'], 404);
-        }
 
-        $validated['category_id'] = $category->id;
+    
+    // رفع الصورة لو موجودة
+    if ($request->hasFile('image')) {
+        $imagePath = $request->file('image')->store('products', 'public'); // غيّرت المجلد إلى 'products'
+        $validated['image'] = $imagePath;
+    }
+   
+    // جلب الفئة والتأكد من وجودها
+    $category = Category::findOrFail($validated['category_id']);
 
-        $product = Product::create($validated);
+    // توليد external_id إذا لم يكن موجود
+    $validated['external_id'] = uniqid();
+    $validated['category_external_id'] = $category->external_id;
 
-        return response()->json(['product' => $product, 'message' => 'Product created successfully'], 201);
+    // إنشاء المنتج
+    $product = Product::create($validated);
+
+    return response()->json([
+        'product' => $product,
+        'message' => 'Product created successfully'
+    ], 201);
+}
+
+
+   public function update(Request $request, $id)
+{
+    $product = Product::findOrFail($id);
+
+    $validated = $request->validate([
+        'name_ar'             => 'sometimes|string',
+        'image'               => 'sometimes|image|mimes:jpg,jpeg,png,webp|max:2048',
+        'price'               => 'sometimes|numeric',
+        'price_wholesale'     => 'sometimes|numeric',
+        'quantity'            => 'sometimes|integer',
+        'description'         => 'nullable|string',
+        'subscription'        => 'sometimes|in:true,false,1,0',
+    ]);
+
+    // تحويل subscription إلى boolean لو موجودة
+    if (isset($validated['subscription'])) {
+        $validated['subscription'] = filter_var($validated['subscription'], FILTER_VALIDATE_BOOLEAN);
     }
 
-    public function update(Request $request, $id)
-    {
-        $product = Product::findOrFail($id);
-
-        $validated = $request->validate([
-            'name_ar' => 'sometimes|string',
-            'name_en' => 'sometimes|string',
-            'image' => 'sometimes|url',
-            'price' => 'sometimes|numeric',
-            'quantity' => 'sometimes|integer',
-            'description' => 'nullable|string',
-            'manage_stock' => 'sometimes|boolean',
-            'user_fields' => 'nullable|array',
-            'category_external_id' => 'sometimes|integer',
-        ]);
-
-        if (isset($validated['category_external_id'])) {
-            $category = Category::where('external_id', $validated['category_external_id'])->first();
-            if ($category) {
-                $validated['category_id'] = $category->id;
-            }
-        }
-
-        $product->update($validated);
-
-        return response()->json(['product' => $product, 'message' => 'Product updated successfully']);
+    // رفع صورة جديدة لو موجودة
+    if ($request->hasFile('image')) {
+        $imagePath = $request->file('image')->store('products', 'public');
+        $validated['image'] = $imagePath;
     }
+
+    // ربط category_id من category_external_id لو أُرسلت
+    if (isset($validated['category_id'])) {
+        $category = Category::findOrFail($validated['category_id']);
+        if ($category) {
+            $validated['category_id'] = $category->id;
+        }
+    }
+
+    $product->update($validated);
+
+    return response()->json([
+        'product' => $product,
+        'message' => 'Product updated successfully'
+    ]);
+}
+
 
     public function destroy($id)
     {

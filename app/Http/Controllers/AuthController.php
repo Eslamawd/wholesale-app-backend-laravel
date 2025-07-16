@@ -103,7 +103,7 @@ public function logout(Request $request)
     public function changeRole(Request $request,  $id)
 {
     $user = User::findOrFail($id);
-    $request->validate(['role' => 'required|in:admin,user']);
+    $request->validate(['role' => 'required|in:admin,user,seals']);
 
     if($request->user()->role !== 'admin') {
         return response()->json(['error' => 'Unauthorized'], 403);

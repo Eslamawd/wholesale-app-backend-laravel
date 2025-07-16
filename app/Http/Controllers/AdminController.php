@@ -10,12 +10,7 @@ use Illuminate\Support\Facades\Log; // لاستخدام Log::error
 
 class AdminController extends Controller
 {
-    protected $zddkApi;
-
-    public function __construct(ZddkApiService $zddkApi)
-    {
-        $this->zddkApi = $zddkApi;
-    }
+    
 
     /**
      * زيادة رصيد المستخدم المحدد.
@@ -110,24 +105,4 @@ class AdminController extends Controller
         return response()->json(['message' => 'Order status updated successfully', 'status' => $order->payment_status]);
     }
 
-    /**
-     * جلب رصيدك كمشغل للمنصة من ZDDK API.
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function getZddkApiBalance(Request $request)
-    {
-        // تأكد من أن هذا المسار محمي بـ middleware للمسؤول (مثل 'auth:sanctum', 'admin')
-        $balanceData = $this->zddkApi->getBalance();
-
-        if ($balanceData && (isset($balanceData['balance']) || isset($balanceData['data']['balance']))) {
-            // ZDDK API يمكن أن يعيد الرصيد مباشرة أو ضمن مفتاح 'data'
-            $zddkBalance = $balanceData['balance'] ?? $balanceData['data']['balance'];
-            return response()->json(['balance' => $zddkBalance]);
-        } else {
-            Log::error('Failed to get ZDDK balance from API or invalid response format.', ['response' => $balanceData]);
-            return response()->json(['error' => 'Failed to retrieve ZDDK API balance.'], 500);
-        }
-    }
 }

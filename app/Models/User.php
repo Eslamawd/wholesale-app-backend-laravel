@@ -59,4 +59,23 @@ class User extends Authenticatable implements Wallet
     {
         return $this->hasMany(Order::class, 'user_id');
     }
+       public function payments()
+    {
+        return $this->hasMany(Payment::class, 'user_id');
+    }
+   
+
+
+    public function subscriptions()
+{
+    return $this->hasMany(Subscription::class);
+}
+
+public function product()
+{
+    return $this->belongsToMany(Product::class, 'subscriptions')
+                ->withPivot(['duration', 'status', 'starts_at', 'ends_at'])
+                ->withTimestamps();
+}
+
 }
