@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [ 'https://servexlb.dkwebmedia.com' ],
+    'allowed_origins' => [ 'https://customers.topuplb.com' ],
 
     'allowed_origins_patterns' => [],
 
