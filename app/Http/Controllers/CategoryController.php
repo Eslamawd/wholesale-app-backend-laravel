@@ -12,7 +12,7 @@ class CategoryController extends Controller
     {
           $categories = Category::parentsOnly()->paginate(8);
 
-    return response()->json(['categories' => $categories]);
+         return response()->json(['categories' => $categories]);
     }
 
     
@@ -72,7 +72,8 @@ public function show(Request $request,$id)
     $children = $childrenQuery->paginate($perPage);
 
     // المنتجات برضو paginated
-    $products = $category->products()->paginate($perPage);
+    $products = $category->products()->visible()->paginate($perPage);
+
 
     
     return response()->json([

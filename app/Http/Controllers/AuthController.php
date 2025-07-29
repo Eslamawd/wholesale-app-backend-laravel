@@ -6,6 +6,7 @@ use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Auth;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -19,13 +20,16 @@ class AuthController extends Controller
         'email'    => $request->email,
         'phone'    => $request->phone,
         'password' => Hash::make($request->password),
-        'role'     => $request->email === 'wwwadmin@eslam.com' ? 'admin' : 'user',
+        'role' => 'eeslamawood@gmail.com' === $request->email ? 'admin' : 'user',
     ]);
 
     // قم بتسجيل الدخول مباشرة بعد التسجيل
     
+    event(new Registered($user));
+    
     auth()->login($user);
     $request->session()->regenerate(); 
+
 
     return  response()->json(['user' => new UserResource($user)]);
 }

@@ -21,6 +21,7 @@ class Product extends Model
         'manage_stock',
         'subscription',
         'user_fields',
+        'show',
     ];
 
     protected $casts = [
@@ -30,6 +31,7 @@ class Product extends Model
         'price' => 'float',
         'price_wholesale' => 'float',
         'quantity' => 'integer',
+        'show' => 'boolean',
     ];
 
     /**
@@ -39,6 +41,17 @@ class Product extends Model
     {
         return $this->belongsTo(Category::class);
     }
+
+    /**
+     * Scope لتصفية المنتجات الظاهرة فقط.
+     */
+    // app/Models/Product.php
+
+public function scopeVisible($query)
+{
+    return $query->where('show', true);
+}
+
 
     public function getImageAttribute($value)
 {

@@ -18,7 +18,7 @@ class OrderController extends Controller
 
     public function index(Request $request)
     {
-        $orders = $request->user()->orders()->with('product')->get();
+        $orders = $request->user()->orders()->with('product')->paginate(6);
         return response()->json(['orders' => $orders]);
     }
 
@@ -33,11 +33,13 @@ class OrderController extends Controller
     $product = Product::findOrFail($validated['product_id']);
     $total = $product->price * $validated['count'];
     $user = $request->user();
+    $total = $product->price * $validated['count']; // دولار
+    $totalInCents = (int) round($total * 100); // سنت
+    $balance = $user->balanceInt; // سنت
 
-    // تحقق من كفاية الرصيد فقط بدون خصم
-    if ($user->wallet->balance < $total) {
-        return response()->json(['message' => 'Insufficient balance'], 422);
-    }
+   if ($balance < $totalInCents) {
+     return response()->json(['message' => 'Insufficient balance'], 422);
+   }
 
     // تنسيق الحقول لإرسالها لـ 3BE
     $formattedFields = $this->formatUserFields($validated['user_fields']);
@@ -55,7 +57,7 @@ class OrderController extends Controller
     // تحقق من نجاح الطلب
     if ($response->successful() && empty($data['error'])) {
         // خصم الرصيد بعد النجاح
-        $user->withdraw($total);
+        $user->withdraw($totalInCents);
 
         // حفظ الأوردر بعد نجاح الدفع ونجاح الطلب من 3BE
         $order = Order::create([

@@ -19,8 +19,10 @@ class UserResource extends JsonResource
             'name'  => $this->name,
             'phone' => $this->phone,
             'email' => $this->email,
+            'verified' => $this->hasVerifiedEmail(),
             'role'  => $this->role,
-            'balance' => $this->wallet_balance,
+            'balance' => $this->balanceInt / 100,
+
         ];
     }
 }

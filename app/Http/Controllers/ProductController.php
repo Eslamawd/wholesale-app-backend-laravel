@@ -4,21 +4,41 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Category;
+use Illuminate\Container\Attributes\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::with('category')->paginate(12); 
+       
+             $products = Product::visible() // ✅ ترجع المنتجات الظاهرة فقط
+                        ->with('category')
+                        ->paginate(8); 
+
         return response()->json(['products' => $products]);
+     
+        
     }
+    public function getByAdmin(Request $request)
+    {
+       
+             $products = Product::with('category')
+                        ->paginate(8); 
+
+        return response()->json(['products' => $products]);
+     
+        
+    }
+
+
    public function getByCat($id)
 {
     $category = Category::findOrFail($id); 
     
-    $products = Product::where('category_id', $category->id)
+   $products = Product::visible() // ✅ المنتجات الظاهرة فقط
+                ->where('category_id', $category->id)
                 ->with('category')
                 ->paginate(12);
 
@@ -86,11 +106,16 @@ public function store(Request $request)
         'quantity'            => 'sometimes|integer',
         'description'         => 'nullable|string',
         'subscription'        => 'sometimes|in:true,false,1,0',
+        'show'                => 'sometimes|in:true,false,1,0',
     ]);
 
     // تحويل subscription إلى boolean لو موجودة
     if (isset($validated['subscription'])) {
         $validated['subscription'] = filter_var($validated['subscription'], FILTER_VALIDATE_BOOLEAN);
+    }
+
+     if (isset($validated['show'])) {
+        $validated['show'] = filter_var($validated['show'], FILTER_VALIDATE_BOOLEAN);
     }
 
     // رفع صورة جديدة لو موجودة

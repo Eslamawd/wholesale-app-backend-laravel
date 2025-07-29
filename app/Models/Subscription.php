@@ -15,6 +15,8 @@ class Subscription extends Model
         'duration',
         'status',
         'total',
+        'iptv',
+        'location',
         'starts_at',
         'ends_at',
     ];

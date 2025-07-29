@@ -1,11 +1,17 @@
 <?php
 
+use App\Http\Controllers\UserSealsController;
+use Illuminate\Http\Request;
+use App\Models\User;
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\WalletController;
 use App\Http\Middleware\AdminMiddleware;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
@@ -20,6 +26,25 @@ Route::get('/product',[ProductController::class, 'index']);
 Route::get('/product/{id}',[ProductController::class, 'show']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
+
+
+       Route::get('/email/verify', function () {
+        return response()->json([
+            'message' => 'Your email address is not verified.'
+        ], 403);
+    })->name('verification.notice');
+
+     // إعادة إرسال رابط التحقق
+    Route::post('/email/verification-notification', function (Request $request) {
+        if ($request->user()->hasVerifiedEmail()) {
+            return response()->json(['message' => 'Already verified']);
+        }
+
+        $request->user()->sendEmailVerificationNotification();
+
+        return response()->json(['message' => 'Verification link sent!']);
+    })->name('verification.send');
+
     
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
@@ -32,11 +57,20 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::post('/subscribe', [SubscriptionController::class, 'store']);
     Route::get('/subscribe', [SubscriptionController::class, 'index']);
+
     
+    Route::get('/seals/user/sub', [UserSealsController::class, 'index']);
+    Route::post('/seals/user/sub', [UserSealsController::class, 'store']);
+    Route::get('/seals/all/user/sub', [UserSealsController::class, 'getAllUserBySealer']);
     
+    Route::post('/seals/new/sub/{id}', [UserSealsController::class, 'createNewSub']);
+   
+    
+
     Route::middleware([AdminMiddleware::class])->prefix('admin')->group(function () {
         Route::apiResource('categories', CategoryController::class);
         Route::apiResource('product', ProductController::class);
+        Route::get('/all/product', [ProductController::class, 'getByAdmin']);
         Route::apiResource('orders', OrderController::class);
         Route::get('all-order',[ OrderController::class, 'orders']);
         
@@ -69,6 +103,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
         
 
         Route::post('/account', [AccountController::class, 'store']);
+        Route::put('/account/{id}', [AccountController::class, 'update']);
+        Route::delete('/account/{id}', [AccountController::class, 'destroy']);
 
 
         
@@ -83,3 +119,29 @@ Route::middleware(['auth:sanctum'])->group(function () {
    
 
 
+
+Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) {
+    $user = User::find($id);
+
+    if (! $user) {
+        return response()->json(['message' => 'User not found.'], 404);
+    }
+
+    // تحقق من صحة الـ hash
+    if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+        return response()->json(['message' => 'Invalid verification link.'], 403);
+    }
+
+    if ($user->hasVerifiedEmail()) {
+        return response()->json(['message' => 'Email already verified.'], 200);
+    }
+
+    $user->markEmailAsVerified();
+
+    return response()->json(['message' => 'Email verified successfully.'], 200);
+})->name('verification.verify');
+
+
+
+Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail']);
+Route::post('/reset-password', [ResetPasswordController::class, 'reset']);

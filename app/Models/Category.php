@@ -54,8 +54,8 @@ class Category extends Model
         return $this->hasMany(Category::class, 'parent_id');
     }
     public function scopeParentsOnly($query)
-{
-    return $query->whereNull('parent_id');
-}
+    {
+        return $query->whereNull('parent_id');
+    }
 
 }

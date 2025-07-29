@@ -37,6 +37,8 @@ public function admin(Request $request)
     $validated = $request->validate([
         'product_id' => 'required|exists:products,id',
         'duration' => 'required|in:1_month,3_months,6_months,1_year',
+        'iptv' => 'required|string',
+        'location' => 'required|string',
     ]);
 
     $user = Auth::user();
@@ -55,15 +57,17 @@ public function admin(Request $request)
         '1_year'    => $basePrice * 12,
     };
 
+    $totalInCents = (int) round($total * 100); // سنت
+    $balance = $user->balanceInt; // سنت
     
-        if ($user->balance < $total) {
+        if ($balance < $totalInCents) {
             throw ValidationException::withMessages([
                 'wallet' => 'Your wallet balance is insufficient.',
             ]);
         }
 
         // اسحب من المحفظة
-        $user->withdraw($total);
+        $user->withdraw($totalInCents);
   
     $startsAt = now();
     $endsAt = match ($validated['duration']) {
@@ -77,6 +81,8 @@ public function admin(Request $request)
         'user_id'    => $user->id,
         'product_id' => $service->id,
         'duration'   => $validated['duration'],
+        'iptv'       => $validated['iptv'],
+        'location'   => $validated['location'],
         'status'     => 'pending',
         'total' => $total,
         'starts_at'  => $startsAt,

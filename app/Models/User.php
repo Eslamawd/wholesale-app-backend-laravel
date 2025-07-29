@@ -3,6 +3,9 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\CustomResetPassword;
+use App\Notifications\CustomVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -11,7 +14,7 @@ use Bavix\Wallet\Traits\HasWallet;
 use Bavix\Wallet\Interfaces\Wallet;
 
 
-class User extends Authenticatable implements Wallet
+class User extends Authenticatable implements Wallet, MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasApiTokens, HasWallet;
@@ -35,6 +38,20 @@ class User extends Authenticatable implements Wallet
      *
      * @var list<string>
      */
+
+    public function sendEmailVerificationNotification()
+{
+    $this->notify(new CustomVerifyEmail());
+}
+
+
+
+
+
+public function sendPasswordResetNotification($token)
+{
+    $this->notify(new CustomResetPassword($token));
+}
 
 
     protected $hidden = [
@@ -78,4 +95,10 @@ public function product()
                 ->withTimestamps();
 }
 
+    public function userSeals()
+    {
+        return $this->hasMany(UserSeals::class, 'user_id');
+    }
+
+   
 }
