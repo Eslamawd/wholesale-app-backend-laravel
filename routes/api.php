@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\UserSealsController;
+use App\Http\Middleware\SealsMiddlware;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Http\Controllers\AccountController;
@@ -48,9 +49,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
+    Route::get('/wallet/balance', [WalletController::class, 'balance']);
+
+    Route::middleware([ 'verified'])->group(function () {
+
     Route::post('/orders', [OrderController::class, 'store']);
     Route::get('/orders', [OrderController::class, 'index']);
-    Route::get('/wallet/balance', [WalletController::class, 'balance']);
 
     Route::get('/payment', [PaymentController::class, 'index']);
     Route::post('/payment', [PaymentController::class, 'store']);
@@ -59,13 +63,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/subscribe', [SubscriptionController::class, 'index']);
 
     
-    Route::get('/seals/user/sub', [UserSealsController::class, 'index']);
-    Route::post('/seals/user/sub', [UserSealsController::class, 'store']);
-    Route::get('/seals/all/user/sub', [UserSealsController::class, 'getAllUserBySealer']);
-    
-    Route::post('/seals/new/sub/{id}', [UserSealsController::class, 'createNewSub']);
+    Route::middleware([SealsMiddlware::class])->prefix('seals')->group(function () {
+    Route::get('user/sub', [UserSealsController::class, 'index']);
+    Route::post('user/sub', [UserSealsController::class, 'store']);
+    Route::get('all/user/sub', [UserSealsController::class, 'getAllUserBySealer']);
+    Route::post('new/sub/{id}', [UserSealsController::class, 'createNewSub']);
    
-    
+    });
 
     Route::middleware([AdminMiddleware::class])->prefix('admin')->group(function () {
         Route::apiResource('categories', CategoryController::class);
@@ -113,6 +117,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
         
 
     });
+
+});
 
    
 });
