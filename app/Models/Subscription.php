@@ -30,6 +30,10 @@ class Subscription extends Model
     {
         return $this->belongsTo(User::class);
     }
+    public function renews()
+    {
+        return $this->hasMany(Renew::class);
+    }
 
     public function product()
     {

@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\ProductSyncController;
+use App\Http\Controllers\RenewController;
 use App\Http\Controllers\UserSealsController;
 use App\Http\Middleware\SealsMiddlware;
 use Illuminate\Http\Request;
@@ -59,6 +61,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/payment', [PaymentController::class, 'index']);
     Route::post('/payment', [PaymentController::class, 'store']);
 
+    Route::post('/renew', [RenewController::class,'store']);
+
     Route::post('/subscribe', [SubscriptionController::class, 'store']);
     Route::get('/subscribe', [SubscriptionController::class, 'index']);
 
@@ -77,8 +81,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/all/product', [ProductController::class, 'getByAdmin']);
         Route::apiResource('orders', OrderController::class);
         Route::get('all-order',[ OrderController::class, 'orders']);
+
         
         
+        Route::get('/renew', [RenewController::class,'index']);
         Route::get('/users', [AuthController::class, 'index']);
         Route::get('/users/{id}', [AuthController::class, 'show']);
         Route::put('/users/{id}', [AuthController::class, 'updated']);
@@ -113,7 +119,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
         
         
-       
+       Route::post('/sync-products', [ProductSyncController::class, 'syncProdacts']);
         
 
     });

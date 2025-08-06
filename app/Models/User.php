@@ -87,6 +87,10 @@ public function sendPasswordResetNotification($token)
 {
     return $this->hasMany(Subscription::class);
 }
+    public function renews()
+{
+    return $this->hasMany(Renew::class);
+}
 
 public function product()
 {
