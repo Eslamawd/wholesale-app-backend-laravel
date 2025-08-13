@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\CategoryPercentageController;
+use App\Http\Controllers\Admin\DiscountController;
 use App\Http\Controllers\Admin\ProductSyncController;
 use App\Http\Controllers\RenewController;
 use App\Http\Controllers\UserSealsController;
@@ -20,7 +22,9 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\OrderController;
 
+
 Route::get('/categories', [CategoryController::class, 'index']);
+Route::get('/categories/children', [CategoryController::class, 'getAllCat']);
 Route::get('/categories/all-req', [CategoryController::class, 'getByAdmin']);
 
 Route::get('/categories/all', [CategoryController::class, 'getAll']);
@@ -120,6 +124,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
         
         
        Route::post('/sync-products', [ProductSyncController::class, 'syncProdacts']);
+       Route::post('/sync-percentage', [CategoryPercentageController::class, 'percentage']);
+       Route::post('/discount', [DiscountController::class, 'discount']);
+       Route::get('/discount', [DiscountController::class, 'index']);
         
 
     });

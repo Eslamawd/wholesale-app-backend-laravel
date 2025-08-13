@@ -103,6 +103,15 @@ public function product()
     {
         return $this->hasMany(UserSeals::class, 'user_id');
     }
+    public function allTotal()
+    {
+       $subTotals =  $this->subscriptions()->sum('total') ;
+       $ordTotals =  $this->orders()->sum('total_price')  ;
+      
+        return    $subTotals + $ordTotals;
+    }
+
+
 
    
 }

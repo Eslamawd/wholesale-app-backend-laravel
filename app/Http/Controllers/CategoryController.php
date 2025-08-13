@@ -33,6 +33,16 @@ class CategoryController extends Controller
 
     return response()->json(['categories' => $categories]);
     }
+
+    public function getAllCat()
+{
+    $categories = Category::whereNull('parent_id')
+        ->with('childrenRecursive')
+        ->get();
+
+    return response()->json(['categories' => $categories]);
+}
+
 public function store(Request $request)
 {
     $request->validate([
