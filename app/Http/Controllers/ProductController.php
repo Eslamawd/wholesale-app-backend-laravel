@@ -57,7 +57,7 @@ class ProductController extends Controller
 public function store(Request $request)
 {
     $validated = $request->validate([
-        'name_ar'            => 'required|string',
+        'name_en'            => 'required|string',
         'image'              => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048', // ← أفضل من url
         'price'              => 'required|numeric',
         'price_wholesale'    => 'required|numeric',
@@ -99,7 +99,7 @@ public function store(Request $request)
     $product = Product::findOrFail($id);
 
     $validated = $request->validate([
-        'name_ar'             => 'sometimes|string',
+        'name_en'             => 'sometimes|string',
         'image'               => 'sometimes|image|mimes:jpg,jpeg,png,webp|max:2048',
         'price'               => 'sometimes|numeric',
         'price_wholesale'     => 'sometimes|numeric',

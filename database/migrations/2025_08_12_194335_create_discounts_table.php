@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->decimal('price_percentage_user', 10, 2)->nullable(); 
             $table->decimal('price_percentage_seals', 10, 2)->nullable(); 
+            $table->unsignedBigInteger('category_id')->nullable();
+              $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');         
             $table->decimal('user_spend_threshold', 10, 2)->default(0); 
             $table->decimal('seals_spend_threshold', 10, 2)->default(0);
             $table->timestamps();

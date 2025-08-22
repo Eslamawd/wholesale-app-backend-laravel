@@ -24,10 +24,9 @@ class Product extends Model
         'show',
     ];
 
-    
     protected $appends = [
         'old_price'
-     ];
+    ];
 
     protected $casts = [
         'user_fields' => 'array',
@@ -38,6 +37,8 @@ class Product extends Model
         'quantity' => 'integer',
         'show' => 'boolean',
     ];
+
+    private $discountCache = null;
 
     /**
      * العلاقة مع التصنيف (الفئة).
@@ -50,29 +51,26 @@ class Product extends Model
     /**
      * Scope لتصفية المنتجات الظاهرة فقط.
      */
-    // app/Models/Product.php
-
-public function scopeVisible($query)
-{
-    return $query->where('show', true);
-}
-
-
-    public function getImageAttribute($value)
-{
-    if (!$value) return null;
-
-    // لو الصورة رابط خارجي زي 3becard.com رجّعها زي ما هي
-    if (str_starts_with($value, 'http')) {
-        return $value;
+    public function scopeVisible($query)
+    {
+        return $query->where('show', true);
     }
 
-    // لو الصورة محفوظة في storage/public/categories
-    return asset('storage/' . $value);
-}
+    /**
+     * صورة المنتج.
+     */
+    public function getImageAttribute($value)
+    {
+        if (!$value) return null;
 
+        if (str_starts_with($value, 'http')) {
+            return $value;
+        }
 
-     public function subscriptions()
+        return asset('storage/' . $value);
+    }
+
+    public function subscriptions()
     {
         return $this->hasMany(Subscription::class);
     }
@@ -80,67 +78,66 @@ public function scopeVisible($query)
     public function users()
     {
         return $this->belongsToMany(User::class, 'subscriptions')
-                    ->withPivot(['duration', 'status', 'starts_at', 'ends_at'])
-                    ->withTimestamps();
+            ->withPivot(['duration', 'status', 'starts_at', 'ends_at'])
+            ->withTimestamps();
     }
 
+    /**
+     * ✅ كاش داخلي للخصومات (عشان نقلل الاستعلامات).
+     */
+    private function getDiscount()
+    {
+        if ($this->discountCache === null) {
+            $this->discountCache = Discount::where('category_id', $this->category_id)->first();
+        }
+        return $this->discountCache;
+    }
+
+    /**
+     * السعر القديم (قبل الخصم).
+     */
     public function getOldPriceAttribute()
-{
-    $discount = Discount::first();
-    $user = auth()->user();
-    $spent = $user ? $user->allTotal() : 0;
-
-    if (! $discount || ! $user) {
-        return $this->price; // نفس السعر لو مفيش خصم
+    {
+        return $this->attributes['price'];
     }
 
-    if ($user->role === 'seals' && $spent > $discount->seals_spend_threshold) {
-        return $this->attributes['price'] ;
+    /**
+     * السعر الحالي بعد الخصم (للمستخدم العادي).
+     */
+    public function getPriceAttribute($value)
+    {
+        $discount = $this->getDiscount();
+        $spent = auth()->check() ? auth()->user()->allTotal() : 0;
+
+        if ($discount && $spent > $discount->user_spend_threshold) {
+            return $this->applyDiscount($this->attributes['price'], $discount->price_percentage_user);
+        }
+
+        return $this->attributes['price'];
     }
 
-    if ($spent > $discount->user_spend_threshold) {
+    /**
+     * سعر الجملة بعد الخصم (لـ seals).
+     */
+    public function getPriceWholesaleAttribute($value)
+    {
+        $discount = $this->getDiscount();
+        $user = auth()->user();
+        $spent = $user ? $user->allTotal() : 0;
+
+        if ($discount && $user && $user->role === 'seals' && $spent > $discount->seals_spend_threshold) {
+            return $this->applyDiscount($this->attributes['price_wholesale'], $discount->price_percentage_seals);
+        }
+
         return $this->attributes['price_wholesale'];
     }
 
-    return $this->price;
-}
-
-
+    /**
+     * دالة لتطبيق الخصم.
+     */
     private function applyDiscount($basePrice, $percentage)
-{
-    $discountAmount = $basePrice * ($percentage / 100);
-    return round($basePrice - $discountAmount, 2);
-}
-
-
-public function getPriceAttribute($value)
-{
-    $discount = Discount::first();
-    $spent = auth()->check() ? auth()->user()->allTotal() : 0;
-
-    if ($discount && $spent > $discount->user_spend_threshold) {
-        return $this->applyDiscount($this->attributes['price'], $discount->price_percentage_user);
+    {
+        $discountAmount = $basePrice * ($percentage / 100);
+        return round($basePrice - $discountAmount, 2);
     }
-
-    return $this->attributes['price'];
-}
-
-public function getPriceWholesaleAttribute($value)
-{
-    $discount = Discount::first();
-    $user = auth()->user();
-    $spent = $user ? $user->allTotal() : 0;
-
-    if ($discount && $user && $user->role === 'seals' && $spent > $discount->seals_spend_threshold) {
-        return $this->applyDiscount($this->attributes['price_wholesale'], $discount->price_percentage_seals);
-    }
-
-    return $this->attributes['price_wholesale'];
-}
-// في الموديل Product مثلاً
-
-
-
-
-
 }
